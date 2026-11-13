@@ -5,10 +5,39 @@ import android.os.Bundle;
 import android.content.pm.ActivityInfo;
 import android.content.SharedPreferences;
 import android.graphics.*;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
 import android.view.*;
 import java.util.*;
 
 public class MainActivity extends Activity {
+  AudioTrack music;
+  void startMusic(int track){
+    stopMusic();
+    final int rate=22050, noteSamples=3969;
+    final int[][] notes={{659,523,587,392,440,349,392,523},{196,196,233,262,233,196,175,147}};
+    short[] pcm=new short[noteSamples*notes[track%2].length];
+    int pos=0;
+    for(int hz:notes[track%2]){
+      for(int i=0;i<noteSamples;i++){
+        double phase=(i*hz*2.0*Math.PI)/rate;
+        double fade=Math.min(1.0,Math.min(i/180.0,(noteSamples-i)/220.0));
+        pcm[pos++]=(short)(Math.sin(phase)>=0?3600*fade:-3600*fade);
+      }
+    }
+    try{
+      music=new AudioTrack(AudioManager.STREAM_MUSIC,rate,AudioFormat.CHANNEL_OUT_MONO,AudioFormat.ENCODING_PCM_16BIT,pcm.length*2,AudioTrack.MODE_STATIC);
+      music.write(pcm,0,pcm.length);
+      music.setLoopPoints(0,pcm.length,-1);
+      music.setVolume(0.22f);
+      music.play();
+    }catch(Exception e){stopMusic();}
+  }
+  void stopMusic(){
+    if(music!=null){try{music.stop();}catch(Exception ignored){}music.release();music=null;}
+  }
+  @Override protected void onDestroy(){stopMusic();super.onDestroy();}
   @Override public void onCreate(Bundle b){super.onCreate(b);setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);getWindow().getDecorView().setSystemUiVisibility(5894|1024|512);setContentView(new Game());}
   class Game extends View {
     Paint p=new Paint(3); SharedPreferences prefs; Random rng=new Random(7);
@@ -47,15 +76,15 @@ public class MainActivity extends Activity {
     void physics(float dt,int w){float floor=ground-42;float speed=310+level*38;scroll+=0; if(mode==0){vy+=1850*dt;py+=vy*dt;if(py>floor){py=floor;vy=0;}}else if(mode==2){vy+=(gravityDown?1850:-1850)*dt;py+=vy*dt;if(gravityDown&&py>floor){py=floor;vy=0;}if(!gravityDown&&py<35){py=35;vy=0;}}else if(mode==1){vy+=(holding?-1150:1250)*dt;py+=vy*dt;py=Math.max(35,Math.min(floor,py));}else if(mode==3){vy+=1250*dt;py+=vy*dt;if(py>floor){py=floor;vy=0;}}else{vy=(holding?-520:520);py+=vy*dt;py=Math.max(35,Math.min(floor,py));}
       float ox=w-((scroll+speed*dt*60)% (w+220));if(customLevel){for(int i=0;i<custom.size();i++){int v=custom.get(i);if(v!=0){float x=w*.08f+(i%16)*(w*.84f/16)-scroll%w;float top=ground-(i/16+1)*34f;if(x<px+42&&x+38>px&&py+42>top&&py<top+38)dead=true;}}}
       else{int[] pat=patterns[level];for(int i=0;i<pat.length;i++){float x=w+180+i*145-scroll%(w+pat.length*145);if(pat[i]==1&&x<px+42&&x+36>px&&py+42>ground-42)dead=true;if(pat[i]==2&&x<px+42&&x+40>px&&py<ground-100)dead=true;}}
-      if(scroll> (customLevel?2300:patLength()*145+1800)){won=true;running=false;wins++;prefs.edit().putInt("wins",wins).apply();}
-      if(py<22||py>ground+80)dead=true;
+      if(scroll> (customLevel?2300:patLength()*145+1800)){won=true;running=false;stopMusic();wins++;prefs.edit().putInt("wins",wins).apply();}
+      if(py<22||py>ground+80){dead=true;stopMusic();}
     }
     int patLength(){return patterns[level].length;}
     void drawTerrain(Canvas c,int w,int h){rect(c,0,ground,w,h-ground,level==0?0xff684b37:0xff64272b,0);float shift=scroll%48;for(int i=-1;i<w/48+2;i++){float x=i*48-shift;if(level==0){rect(c,x,ground,46,10,0xff3caa52,1);rect(c,x,ground+10,46,38,0xff77513a,1);p.setColor(0xff4c382f);p.setStyle(Paint.Style.STROKE);c.drawRect(x,ground+10,x+46,ground+48,p);p.setStyle(Paint.Style.FILL);rect(c,x+5,ground+20,7,5,0xff98704c,1);}else{rect(c,x,ground,46,8,0xfff05a36,1);rect(c,x,ground+8,46,40,0xff842e30,1);p.setColor(0xff54232b);p.setStyle(Paint.Style.STROKE);c.drawRect(x,ground+8,x+46,ground+48,p);p.setStyle(Paint.Style.FILL);rect(c,x+8,ground+23,22,4,0xffff8b37,1);}}}\n    void drawObstacles(Canvas c,int w){int[] pat=patterns[level];for(int i=0;i<pat.length;i++){float x=w+180+i*145-scroll%(w+pat.length*145);if(pat[i]==1){p.setColor(0xffff5274);Path t=new Path();t.moveTo(x,ground);t.lineTo(x+19,ground-42);t.lineTo(x+38,ground);t.close();c.drawPath(t,p);}else if(pat[i]==2){rect(c,x,ground-118,36,14,0xffe9b84a,3);}}}
     void drawCustom(Canvas c,int w){float cw=w*.84f/16;for(int i=0;i<custom.size();i++){int v=custom.get(i);if(v==0)continue;float x=w*.08f+(i%16)*cw-scroll%w;float top=ground-(i/16+1)*34f;if(v==1)rect(c,x,top,cw-2,30,colors[skin],2);else{p.setColor(0xffff5274);Path t=new Path();t.moveTo(x,top+34);t.lineTo(x+cw/2,top);t.lineTo(x+cw,top+34);t.close();c.drawPath(t,p);}}}
     void drawPlayer(Canvas c){p.setColor(colors[skin]);c.save();float cx=px+21,cy=py+21;if(mode==0){c.rotate((float)(scroll*.18%360),cx,cy);c.drawRoundRect(px,py,px+42,py+42,6,6,p);}else if(mode==1){Path ship=new Path();ship.moveTo(px,py+7);ship.lineTo(px+42,cy);ship.lineTo(px,py+35);ship.lineTo(px+9,cy);ship.close();c.drawPath(ship,p);p.setColor(0xffffd447);Path flame=new Path();flame.moveTo(px+5,cy-7);flame.lineTo(px-10,cy);flame.lineTo(px+5,cy+7);flame.close();c.drawPath(flame,p);}else if(mode==2){c.rotate((float)(scroll*.25%360),cx,cy);c.drawCircle(cx,cy,21,p);p.setColor(0xff26334c);c.drawCircle(cx,cy,8,p);}else if(mode==3){c.drawOval(px,py+7,px+42,py+38,p);p.setColor(0xffeafaff);c.drawArc(px+5,py-2,px+37,py+25,180,180,false,p);c.drawRect(px+11,py+21,px+16,py+26,p);c.drawRect(px+26,py+21,px+31,py+26,p);}else{Path wave=new Path();wave.moveTo(cx,py);wave.lineTo(px+42,cy);wave.lineTo(cx,py+42);wave.lineTo(px,cy);wave.close();c.drawPath(wave,p);}if(mode!=1){p.setColor(Color.WHITE);c.drawCircle(px+14,py+17,3,p);c.drawCircle(px+29,py+17,3,p);}c.restore();}
-    void action(int id){if(id==0){page=0;}else if(id==1)page=1;else if(id==2)page=2;else if(id==3)page=3;else if(id==10||id==11)start(id-10,false);else if(id==13)start(0,false);else if(id>=50&&id<55)mode=id-50;else if(id>=20&&id<28){skin=id-20;prefs.edit().putInt("skin",skin).apply();}else if(id==30)editorTool=1;else if(id==31)editorTool=2;else if(id==32)editorTool=0;else if(id==33){StringBuilder b=new StringBuilder();for(int v:custom){if(b.length()>0)b.append(',');b.append(v);}prefs.edit().putString("map",b.toString()).apply();}else if(id==34)start(0,true);else if(id==40)start(level,customLevel);else if(id==41)start((level+1)%2,false);invalidate();}
-    @Override public boolean onTouchEvent(MotionEvent e){float x=e.getX(),y=e.getY();if(page==4){if(e.getAction()==MotionEvent.ACTION_DOWN){if(dead||won){for(Area a:areas)if(a.hit(x,y)){action(a.id);return true;}}else{holding=true;if(!running){running=true;last=0;}if(mode==3)vy=-520;else if(mode==2){gravityDown=!gravityDown;vy=gravityDown?180:-180;}else if(mode==0){if(py>=ground-43)vy=-690;} }return true;}if(e.getAction()==MotionEvent.ACTION_UP){holding=false;return true;}return true;}
+    void action(int id){if(id==0){stopMusic();page=0;}else if(id==1)page=1;else if(id==2)page=2;else if(id==3)page=3;else if(id==10||id==11)start(id-10,false);else if(id==13)start(0,false);else if(id>=50&&id<55)mode=id-50;else if(id>=20&&id<28){skin=id-20;prefs.edit().putInt("skin",skin).apply();}else if(id==30)editorTool=1;else if(id==31)editorTool=2;else if(id==32)editorTool=0;else if(id==33){StringBuilder b=new StringBuilder();for(int v:custom){if(b.length()>0)b.append(',');b.append(v);}prefs.edit().putString("map",b.toString()).apply();}else if(id==34)start(0,true);else if(id==40)start(level,customLevel);else if(id==41)start((level+1)%2,false);invalidate();}
+    @Override public boolean onTouchEvent(MotionEvent e){float x=e.getX(),y=e.getY();if(page==4){if(e.getAction()==MotionEvent.ACTION_DOWN){if(dead||won){for(Area a:areas)if(a.hit(x,y)){action(a.id);return true;}}else{holding=true;if(!running){running=true;last=0;startMusic(level);}if(mode==3)vy=-520;else if(mode==2){gravityDown=!gravityDown;vy=gravityDown?180:-180;}else if(mode==0){if(py>=ground-43)vy=-690;} }return true;}if(e.getAction()==MotionEvent.ACTION_UP){holding=false;return true;}return true;}
       if(e.getAction()==MotionEvent.ACTION_DOWN){if(page==3){float left=getWidth()*.08f,top=getHeight()*.18f,cw=getWidth()*.84f/16,ch=getHeight()*.43f/6;if(y>=top&&y<top+ch*6&&x>=left&&x<left+cw*16){int idx=(int)((y-top)/ch)*16+(int)((x-left)/cw);while(custom.size()<96)custom.add(0);custom.set(idx,editorTool);invalidate();return true;}}
       for(int i=areas.size()-1;i>=0;i--)if(areas.get(i).hit(x,y)){action(areas.get(i).id);return true;}}return true;}
     class Area{float l,t,r,b;int id;Area(float a,float z,float q,float d,int n){l=a;t=z;r=q;b=d;id=n;}boolean hit(float x,float y){return x>=l&&x<=r&&y>=t&&y<=b;}}
