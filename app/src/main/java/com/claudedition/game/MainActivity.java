@@ -24,7 +24,7 @@ public class MainActivity extends Activity {
       for(int i=0;i<noteSamples;i++){
         double phase=(i*hz*2.0*Math.PI)/rate;
         double fade=Math.min(1.0,Math.min(i/180.0,(noteSamples-i)/220.0));
-        pcm[pos++]=(short)(Math.sin(phase)>=0?3600*fade:-3600*fade);
+        pcm[pos++]=(short)(Math.sin(phase)*3600*fade);
       }
     }
     try{
