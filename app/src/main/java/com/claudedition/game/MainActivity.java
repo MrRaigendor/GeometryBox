@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
     void start(int l,boolean customMap){level=l;customLevel=customMap;page=4;running=false;dead=false;won=false;score=0;scroll=0;py=ground-42;vy=0;last=0;attempts++;invalidate();}
     void play(Canvas c,int w,int h){int sky=level==0?0xff183d49:0xff381b35;bg(c,w,h,sky);float dt=0;if(running&&!dead&&!won){long now=System.nanoTime();dt=last==0?0:Math.min(.035f,(now-last)/1e9f);last=now;physics(dt,w);scroll+=dt*310;score=(int)(scroll/35);if(score>best){best=score;prefs.edit().putInt("best",best).apply();}}
       rect(c,0,ground,w,h-ground,level==0?0xff245d40:0xff742b28,0);
-      for(int i=0;i<w/50+3;i++){float x=(i*50-(scroll%50));rect(c,x,ground+10,48,5,0x553ffffff,1);}
+      for(int i=0;i<w/50+3;i++){float x=(i*50-(scroll%50));rect(c,x,ground+10,48,5,0x55ffffff,1);}
       if(customLevel)drawCustom(c,w);else drawObstacles(c,w);
       drawPlayer(c);txt(c,"LEVEL "+(level+1)+"   "+modes[mode],22,32,17,Color.WHITE);txt(c,""+score,w-90,32,19,Color.WHITE);
       if(!running&&!dead&&!won)center(c,"TAP TO START",w/2f,h*.35f,28,Color.WHITE);
