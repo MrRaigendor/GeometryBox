@@ -37,6 +37,7 @@ public class MainActivity extends Activity {
   void stopMusic(){
     if(music!=null){try{music.stop();}catch(Exception ignored){}music.release();music=null;}
   }
+  @Override protected void onPause(){stopMusic();super.onPause();}
   @Override protected void onDestroy(){stopMusic();super.onDestroy();}
   @Override public void onCreate(Bundle b){super.onCreate(b);setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);getWindow().getDecorView().setSystemUiVisibility(5894|1024|512);setContentView(new Game());}
   class Game extends View {
@@ -74,8 +75,8 @@ public class MainActivity extends Activity {
       if(won){center(c,"LEVEL COMPLETE!",w/2f,h*.40f,32,Color.WHITE);btn(c,w*.38f,h*.55f,w*.24f,44,"NEXT",41,0xff287e60);btn(c,w*.38f,h*.68f,w*.24f,40,"MENU",0,0xff414b63);}
     }
     void physics(float dt,int w){float floor=ground-42;float speed=310+level*38;scroll+=0; if(mode==0){vy+=1850*dt;py+=vy*dt;if(py>floor){py=floor;vy=0;}}else if(mode==2){vy+=(gravityDown?1850:-1850)*dt;py+=vy*dt;if(gravityDown&&py>floor){py=floor;vy=0;}if(!gravityDown&&py<35){py=35;vy=0;}}else if(mode==1){vy+=(holding?-1150:1250)*dt;py+=vy*dt;py=Math.max(35,Math.min(floor,py));}else if(mode==3){vy+=1250*dt;py+=vy*dt;if(py>floor){py=floor;vy=0;}}else{vy=(holding?-520:520);py+=vy*dt;py=Math.max(35,Math.min(floor,py));}
-      float ox=w-((scroll+speed*dt*60)% (w+220));if(customLevel){for(int i=0;i<custom.size();i++){int v=custom.get(i);if(v!=0){float x=w*.08f+(i%16)*(w*.84f/16)-scroll%w;float top=ground-(i/16+1)*34f;if(x<px+42&&x+38>px&&py+42>top&&py<top+38)dead=true;}}}
-      else{int[] pat=patterns[level];for(int i=0;i<pat.length;i++){float x=w+180+i*145-scroll%(w+pat.length*145);if(pat[i]==1&&x<px+42&&x+36>px&&py+42>ground-42)dead=true;if(pat[i]==2&&x<px+42&&x+40>px&&py<ground-100)dead=true;}}
+      float ox=w-((scroll+speed*dt*60)% (w+220));if(customLevel){for(int i=0;i<custom.size();i++){int v=custom.get(i);if(v!=0){float x=w*.08f+(i%16)*(w*.84f/16)-scroll%w;float top=ground-(i/16+1)*34f;if(x<px+42&&x+38>px&&py+42>top&&py<top+38){dead=true;stopMusic();}}}}
+      else{int[] pat=patterns[level];for(int i=0;i<pat.length;i++){float x=w+180+i*145-scroll%(w+pat.length*145);if(pat[i]==1&&x<px+42&&x+36>px&&py+42>ground-42){dead=true;stopMusic();}if(pat[i]==2&&x<px+42&&x+40>px&&py<ground-100){dead=true;stopMusic();}}}
       if(scroll> (customLevel?2300:patLength()*145+1800)){won=true;running=false;stopMusic();wins++;prefs.edit().putInt("wins",wins).apply();}
       if(py<22||py>ground+80){dead=true;stopMusic();}
     }
