@@ -13,6 +13,7 @@ import java.util.*;
 
 public class MainActivity extends Activity {
   AudioTrack music;
+  Game gameView;
   void startMusic(int track){
     stopMusic();
     final int rate=22050, noteSamples=3969;
@@ -38,8 +39,9 @@ public class MainActivity extends Activity {
     if(music!=null){try{music.stop();}catch(Exception ignored){}music.release();music=null;}
   }
   @Override protected void onPause(){stopMusic();super.onPause();}
+  @Override protected void onResume(){super.onResume();if(gameView!=null&&gameView.page==4&&gameView.running&&!gameView.dead&&!gameView.won)startMusic(gameView.level);}
   @Override protected void onDestroy(){stopMusic();super.onDestroy();}
-  @Override public void onCreate(Bundle b){super.onCreate(b);setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);getWindow().getDecorView().setSystemUiVisibility(5894|1024|512);setContentView(new Game());}
+  @Override public void onCreate(Bundle b){super.onCreate(b);setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);getWindow().getDecorView().setSystemUiVisibility(5894|1024|512);gameView=new Game();setContentView(gameView);}
   class Game extends View {
     Paint p=new Paint(3); SharedPreferences prefs; Random rng=new Random(7);
     int page=0,level=0,mode=0,skin=0,selected=0,score=0,best=0,wins=0,attempts=0,editorTool=1;
