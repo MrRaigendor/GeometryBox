@@ -38,13 +38,13 @@ def texture(name,w,h,base,contrast,seed,kind):
     im.save(os.path.join(ROOT,name),format="PNG",compress_level=1)
 
 # Large seamless-style materials used by the live game renderer.
-texture("stone_wall.png",4096,4096,(91,96,111),76,11,"stone")
-texture("earth_soil.png",2048,2048,(111,70,43),88,21,"dirt")
-texture("sky_clouds.png",2048,2048,(73,151,211),60,31,"sky")
-texture("cave_rock.png",2048,2048,(48,43,55),72,41,"stone")
+texture("stone_wall.png",3072,3072,(91,96,111),76,11,"stone")
+texture("earth_soil.png",1536,1536,(111,70,43),88,21,"dirt")
+texture("sky_clouds.png",1536,1536,(73,151,211),60,31,"sky")
+texture("cave_rock.png",1536,1536,(48,43,55),72,41,"stone")
 
-# Original electronic soundtrack: four distinct 60-second, stereo PCM tracks.
-SR=44100; DUR=60
+# Original electronic soundtrack: four distinct 155-second, stereo PCM tracks.
+SR=44100; DUR=155
 def write_song(name,bpm,root,seed,style):
     rr=np.random.default_rng(seed); n=SR*DUR
     t=np.arange(n,dtype=np.float32)/SR
