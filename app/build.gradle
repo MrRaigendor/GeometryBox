@@ -1,6 +1,3 @@
 plugins { id 'com.android.application' }
-android {
- namespace 'com.geometrybox.game'
- compileSdk 35
- defaultConfig { applicationId 'com.geometrybox.game'; minSdk 23; targetSdk 35; versionCode 2; versionName '2.0' }
-}
+android { namespace 'com.geometrydash.deluxe'; compileSdk 35
+ defaultConfig { applicationId 'com.geometrydash.deluxe'; minSdk 23; targetSdk 35; versionCode 1; versionName '1.0' } }
