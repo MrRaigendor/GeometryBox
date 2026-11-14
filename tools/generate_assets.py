@@ -43,8 +43,8 @@ texture("earth_soil.png",2048,2048,(111,70,43),88,21,"dirt")
 texture("sky_clouds.png",2048,2048,(73,151,211),60,31,"sky")
 texture("cave_rock.png",2048,2048,(48,43,55),72,41,"stone")
 
-# Original electronic soundtrack: four distinct 90-second, stereo PCM tracks.
-SR=44100; DUR=90
+# Original electronic soundtrack: four distinct 60-second, stereo PCM tracks.
+SR=44100; DUR=60
 def write_song(name,bpm,root,seed,style):
     rr=np.random.default_rng(seed); n=SR*DUR
     t=np.arange(n,dtype=np.float32)/SR
