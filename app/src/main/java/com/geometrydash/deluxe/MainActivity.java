@@ -1,6 +1,6 @@
 package com.geometrydash.deluxe;
 
-import android.app.Activity;import android.os.Bundle;import android.content.pm.ActivityInfo;import android.content.SharedPreferences;import android.graphics.*;import android.media.*;import android.view.*;import java.util.*;import java.io.*;
+import android.app.Activity;import android.os.Bundle;import android.content.pm.ActivityInfo;import android.content.res.AssetFileDescriptor;import android.content.SharedPreferences;import android.graphics.*;import android.media.*;import android.view.*;import java.util.*;import java.io.*;
 
 public class MainActivity extends Activity {
  Game game;
